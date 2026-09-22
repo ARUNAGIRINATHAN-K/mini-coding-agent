@@ -34,6 +34,15 @@ The agent is built around six components:
   <img alt="Six core components of a coding agent" src="https://sebastianraschka.com/images/github/mini-coding-agent/six-components.webp" width="600px">
 </a>
 
+### Repository context
+
+The agent persists a versioned, metadata-only context index at
+`.mini-coding-agent/cache/repository-context-v1.json`. It records filtered
+paths, file sizes, modification times, hashes, documentation summaries, and
+Git metadata; it does not cache source-file contents. Use `/context` in the
+interactive CLI to refresh the index. Successful `write_file` and `patch_file`
+operations refresh only the affected paths before the next model turn.
+
 ### Tools
 
 All tools enforce workspace path containment to prevent directory traversal and symlink escapes.

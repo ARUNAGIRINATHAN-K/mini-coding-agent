@@ -100,6 +100,8 @@ class MiniAgent:
         return snapshot
 
     def invalidate_context(self, paths, reason):
+        if isinstance(paths, (str, Path)):
+            paths = [paths]
         snapshot = self.context_service.invalidate(paths, reason)
         self.prefix = self.build_prefix()
         self.emit("context_invalidated", paths=[str(path) for path in paths], reason=reason)

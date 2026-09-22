@@ -154,13 +154,21 @@ class RepositoryContextService:
 
     def _git_snapshot(self):
         default_branch = self._git(["symbolic-ref", "--short", "refs/remotes/origin/HEAD"], "origin/main")
+        unstaged_diff = self._git(["diff", "--stat"])
+        staged_diff = self._git(["diff", "--cached", "--stat"])
+        diff_summary = "\n".join(
+            part for part in (
+                f"unstaged:\n{unstaged_diff}" if unstaged_diff else "",
+                f"staged:\n{staged_diff}" if staged_diff else "",
+            ) if part
+        ) or "(no diff)"
         return {
             "repo_root": str(self.root),
             "branch": self._git(["branch", "--show-current"], "-") or "-",
             "default_branch": default_branch.removeprefix("origin/"),
             "status": clip(self._git(["status", "--short"], "clean") or "clean", 1500),
             "recent_commits": [line for line in self._git(["log", "--oneline", "-5"]).splitlines() if line],
-            "diff_summary": clip(self._git(["diff", "--stat"], "(no unstaged diff)") or "(no unstaged diff)", 1500),
+            "diff_summary": clip(diff_summary, 1500),
         }
 
     def _configured_patterns(self):
@@ -277,6 +285,8 @@ class RepositoryContextService:
             for path in self._iter_files():
                 self._index_path(path)
         else:
+            if isinstance(paths, (str, Path)):
+                paths = [paths]
             normalized = []
             for raw_path in paths:
                 path = Path(raw_path)
@@ -304,6 +314,8 @@ class RepositoryContextService:
         return self.snapshot()
 
     def invalidate(self, paths, reason="changed"):
+        if isinstance(paths, (str, Path)):
+            paths = [paths]
         paths = [str(path) for path in paths]
         snapshot = self.refresh(paths)
         snapshot["invalidation"] = {"paths": paths, "reason": reason}
@@ -329,7 +341,7 @@ class RepositoryContextService:
             "- status:", git.get("status", "clean"),
             "- recent_commits:",
             "\n".join(f"- {line}" for line in git.get("recent_commits", [])) or "- none",
-            "- diff_summary:", git.get("diff_summary", "(no unstaged diff)"),
+            "- diff_summary:", git.get("diff_summary", "(no diff)"),
             "- project_documents:",
         ]
         for path in sorted(self.documents):
