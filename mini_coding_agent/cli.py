@@ -16,7 +16,7 @@ HELP_DETAILS = "\n".join([
     "/session Show the path to the saved session file.", "/reset   Clear the current session history and memory.", "/exit    Exit the agent.",
     "/context Refresh and show the repository-context snapshot.",
 ])
-WELCOME_ART = ("/\\     /\\\\", "{  `---'  }", "{  O   O  }", "~~>  V  <~~", "\\\\  \\|/  /", "`-----'__")
+WELCOME_ART = (r"/\     /\\", r"{  `---'  }", r"{  O   O  }", r"~~>  V  <~~", r"\\  \|/  /", r"`-----'__")
 
 
 def build_welcome(agent, model, host):
