@@ -16,11 +16,22 @@ HELP_DETAILS = "\n".join([
     "/session Show the path to the saved session file.", "/reset   Clear the current session history and memory.", "/exit    Exit the agent.",
     "/context Refresh and show the repository-context snapshot.",
 ])
-WELCOME_ART = (r"/\     /\\", r"{  `---'  }", r"{  O   O  }", r"~~>  V  <~~", r"\\  \|/  /", r"`-----'__")
+WELCOME_ART = (
+    r"+---------------------+ +---------------------+ +---------------------+ +---------------------+",
+    r"| +-----------------+ | | +-----------------+ | | +-----------------+ | | +-----------------+ |",
+    r"| |  ███╗    ███╗   | | | |      ██╗        | | | |  ███╗    ██╗    | | | |      ██╗        | |",
+    r"| |  ████╗  ████║   | | | |      ██║        | | | |  ████╗   ██║    | | | |      ██║        | |",
+    r"| |  ██╔ ████╔██║   | | | |      ██║        | | | |  ██╔██╗  ██║    | | | |      ██║        | |",
+    r"| |  ██║ ╚██╔╝██║   | | | |      ██║        | | | |  ██║╚██╗ ██║    | | | |      ██║        | |",
+    r"| |  ██║  ╚═╝ ██║   | | | |      ██║        | | | |  ██║  ╚████║    | | | |      ██║        | |",
+    r"| |  ╚═╝      ╚═╝   | | | |      ╚═╝        | | | |  ╚═╝   ╚═══╝    | | | |      ╚═╝        | |",
+    r"| +-----------------+ | | +-----------------+ | | +-----------------+ | | +-----------------+ |",
+    r"+---------------------+ +---------------------+ +---------------------+ +---------------------+",
+)
 
 
 def build_welcome(agent, model, host):
-    width = max(68, min(shutil.get_terminal_size((80, 20)).columns, 84))
+    width = max(99, min(shutil.get_terminal_size((100, 20)).columns, 105))
     inner, gap = width - 4, 3
     left_width = (inner - gap) // 2
     right_width = inner - gap - left_width
@@ -41,7 +52,7 @@ def build_welcome(agent, model, host):
         return f"| {cell(left_label, left_value, left_width)}{' ' * gap}{cell(right_label, right_value, right_width)} |"
 
     rows = [center(text) for text in WELCOME_ART]
-    rows.extend([center("MINI CODING AGENT"), divider("-"), row(""), row("WORKSPACE  " + middle(agent.workspace.cwd, inner - 11)), pair("MODEL", model, "BRANCH", agent.workspace.branch), pair("APPROVAL", agent.approval_policy, "SESSION", agent.session["id"]), row("")])
+    rows.extend([center("C O D I N G   A G E N T"), divider("-"), row(""), row("WORKSPACE  " + middle(agent.workspace.cwd, inner - 11)), pair("MODEL", model, "BRANCH", agent.workspace.branch), pair("APPROVAL", agent.approval_policy, "SESSION", agent.session["id"]), row("")])
     return "\n".join([divider("="), *rows, divider("=")])
 
 

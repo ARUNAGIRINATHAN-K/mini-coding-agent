@@ -246,9 +246,9 @@ def test_welcome_screen_keeps_box_shape_for_long_paths(tmp_path):
     assert len(lines) >= 5
     assert len({len(line) for line in lines}) == 1
     assert "..." in welcome
-    assert "O   O" in welcome
-    assert "MINI-CODING-AGENT" not in welcome
-    assert "MINI CODING AGENT" in welcome
+    assert "███╗" in welcome
+    assert "C O D I N G   A G E N T" in welcome
+    assert "MINI CODING AGENT" not in welcome
     assert "// READY" not in welcome
     assert "SLASH" not in welcome
     assert "READY      " not in welcome

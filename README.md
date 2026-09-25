@@ -6,9 +6,29 @@
 
 A lightweight, standalone coding agent written in Python and powered locally by [Ollama](https://ollama.com/).
 
-<a href="https://magazine.sebastianraschka.com/p/components-of-a-coding-agent">
-  <img src="https://substack-post-media.s3.amazonaws.com/public/images/49b97718-57f4-4977-99c8-8ad5c4d32af3_1548x862.png" width="600px" alt="Components of a Coding Agent">
-</a>
+![mini-coding-agent](assets/top1.png)
+
+```
++=================================================================================================+
+| +---------------------+ +---------------------+ +---------------------+ +---------------------+ |
+| | +-----------------+ | | +-----------------+ | | +-----------------+ | | +-----------------+ | |
+| | |  ███╗    ███╗   | | | |      ██╗        | | | |  ███╗    ██╗    | | | |      ██╗        | | |
+| | |  ████╗  ████║   | | | |      ██║        | | | |  ████╗   ██║    | | | |      ██║        | | |
+| | |  ██╔ ████╔██║   | | | |      ██║        | | | |  ██╔██╗  ██║    | | | |      ██║        | | |
+| | |  ██║ ╚██╔╝██║   | | | |      ██║        | | | |  ██║╚██╗ ██║    | | | |      ██║        | | |
+| | |  ██║  ╚═╝ ██║   | | | |      ██║        | | | |  ██║  ╚████║    | | | |      ██║        | | |
+| | |  ╚═╝      ╚═╝   | | | |      ╚═╝        | | | |  ╚═╝   ╚═══╝    | | | |      ╚═╝        | | |
+| | +-----------------+ | | +-----------------+ | | +-----------------+ | | +-----------------+ | |
+| +---------------------+ +---------------------+ +---------------------+ +---------------------+ |
+|                                    C O D I N G   A G E N T                                      |
++-------------------------------------------------------------------------------------------------+
+|                                                                                                 |
+| WORKSPACE  A:\My project\mini-coding-agent                                                      |
+| MODEL      qwen3.5:4b                          BRANCH    main                                   |
+| APPROVAL   ask                                 SESSION   20260929-145925-56fef0                 |
+|                                                                                                 |
++=================================================================================================+
+```
 
 ## Overview
 
@@ -30,9 +50,8 @@ The agent is built around six components:
 5. **Transcripts, memory, and resumption:** Saves session history and distilled working memory so sessions can be resumed across runs.
 6. **Delegation and bounded subagents:** Spawns scoped, read-only subagents for isolated subtasks, with depth limits.
 
-<a href="https://magazine.sebastianraschka.com/p/components-of-a-coding-agent">
-  <img alt="Six core components of a coding agent" src="https://sebastianraschka.com/images/github/mini-coding-agent/six-components.webp" width="600px">
-</a>
+
+
 
 ### Repository context
 
@@ -68,7 +87,7 @@ All tools enforce workspace path containment to prevent directory traversal and 
 ### Clone the repository
 
 ```bash
-git clone https://github.com/rasbt/mini-coding-agent.git
+git clone https://github.com/ARUNAGIRINATHAN-K/mini-coding-agent.git
 cd mini-coding-agent
 ```
 
