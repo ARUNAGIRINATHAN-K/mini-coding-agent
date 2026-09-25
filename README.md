@@ -6,7 +6,7 @@
 
 A lightweight, standalone coding agent written in Python and powered locally by [Ollama](https://ollama.com/).
 
-![mini-coding-agent](assets/top1.png)
+![mini-coding-agent](assets/top.png)
 
 ```
 +=================================================================================================+
