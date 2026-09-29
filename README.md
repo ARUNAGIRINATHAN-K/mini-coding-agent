@@ -6,31 +6,9 @@
 
 A lightweight, standalone coding agent written in Python and powered locally by [Ollama](https://ollama.com/).
 
-![mini-coding-agent](assets/top.png)
+<img src="assets/CLI.png" width="600" alt="Mini Coding Agent CLI">
 
-```
-+=================================================================================================+
-| +---------------------+ +---------------------+ +---------------------+ +---------------------+ |
-| | +-----------------+ | | +-----------------+ | | +-----------------+ | | +-----------------+ | |
-| | |  ███╗    ███╗   | | | |      ██╗        | | | |  ███╗    ██╗    | | | |      ██╗        | | |
-| | |  ████╗  ████║   | | | |      ██║        | | | |  ████╗   ██║    | | | |      ██║        | | |
-| | |  ██╔ ████╔██║   | | | |      ██║        | | | |  ██╔██╗  ██║    | | | |      ██║        | | |
-| | |  ██║ ╚██╔╝██║   | | | |      ██║        | | | |  ██║╚██╗ ██║    | | | |      ██║        | | |
-| | |  ██║  ╚═╝ ██║   | | | |      ██║        | | | |  ██║  ╚████║    | | | |      ██║        | | |
-| | |  ╚═╝      ╚═╝   | | | |      ╚═╝        | | | |  ╚═╝   ╚═══╝    | | | |      ╚═╝        | | |
-| | +-----------------+ | | +-----------------+ | | +-----------------+ | | +-----------------+ | |
-| +---------------------+ +---------------------+ +---------------------+ +---------------------+ |
-|                                    C O D I N G   A G E N T                                      |
-+-------------------------------------------------------------------------------------------------+
-|                                                                                                 |
-| WORKSPACE  A:\My project\mini-coding-agent                                                      |
-| MODEL      qwen3.5:4b                          BRANCH    main                                   |
-| APPROVAL   ask                                 SESSION   20260929-145925-56fef0                 |
-|                                                                                                 |
-+=================================================================================================+
-```
-
-## Overview
+<br>
 
 Mini-Coding-Agent implements a complete local agent loop: repository context collection, stable prompt composition, schema-checked and permission-gated tool execution, session persistence, context compression, and bounded delegation.
 
@@ -39,28 +17,18 @@ Mini-Coding-Agent implements a complete local agent loop: repository context col
 - **CLI entry point:** `mini-coding-agent`
 - **Tutorial:** [Components of a Coding Agent](https://magazine.sebastianraschka.com/p/components-of-a-coding-agent)
 
-## Features
-
 The agent is built around six components:
 
-1. **Live repo context:** Maintains a refreshable, metadata-only repository index with a filtered file tree, instructions, git state, diff summary, cache diagnostics, and guarded on-demand file reads.
-2. **Prompt shape and cache reuse:** Keeps a stable system prefix separate from dynamic inputs to improve local model caching.
-3. **Structured tools, validation, and permissions:** Runs named, schema-checked tools constrained by path validation and explicit approval rules.
-4. **Context reduction and output management:** Deduplicates repeated reads, caps tool output length, and compresses turn history to stay within token budgets.
-5. **Transcripts, memory, and resumption:** Saves session history and distilled working memory so sessions can be resumed across runs.
-6. **Delegation and bounded subagents:** Spawns scoped, read-only subagents for isolated subtasks, with depth limits.
+1. **Live repository context:** A refreshable index of the repository, including a filtered file tree, instructions, Git status, diff summary, cache diagnostics, and controlled on-demand file access.
+2. **Prompt optimization and cache reuse:** Employs a stable system prefix, separate from dynamic inputs, to enhance local model caching.
+3. **Structured tools with validation and permissions:** Executes named, schema-validated tools, restricted by path validation and explicit approval.
+4. **Context streamlining and output control:** Reduces redundancy in file reads, limits tool output size, and compresses turn history to manage token usage.
+5. **Session persistence and memory:** Saves session history and distilled working memory, enabling session resumption across multiple runs.
+6. **Delegated, bounded subagents:** Creates isolated, read-only subagents for specific subtasks, with defined depth limits.
 
+---
 
-
-
-### Repository context
-
-The agent persists a versioned, metadata-only context index at
-`.mini-coding-agent/cache/repository-context-v1.json`. It records filtered
-paths, file sizes, modification times, hashes, documentation summaries, and
-Git metadata; it does not cache source-file contents. Use `/context` in the
-interactive CLI to refresh the index. Successful `write_file` and `patch_file`
-operations refresh only the affected paths before the next model turn.
+The agent persists a versioned, metadata-only context index at `.mini-coding-agent/cache/repository-context-v1.json`. It records filtered paths, file sizes, modification times, hashes, documentation summaries, and Git metadata; it does not cache source-file contents. Use `/context` in the interactive CLI to refresh the index. Successful `write_file` and `patch_file` operations refresh only the affected paths before the next model turn.
 
 ### Tools
 
@@ -96,13 +64,11 @@ cd mini-coding-agent
 **Native**
 
 1. Install Ollama from [ollama.com/download](https://ollama.com/download).
-2. Start the server:
+2. Start the server and pull the default model:
+
 ```bash
-   ollama serve
-```
-3. Pull the default model:
-```bash
-   ollama pull qwen3.5:4b
+ollama serve
+ollama pull qwen3.5:4b
 ```
 
 **Docker**
@@ -110,13 +76,8 @@ cd mini-coding-agent
 Use the provided `docker-compose.yml`:
 
 ```bash
-# Start the Ollama container in the background
 docker compose up -d ollama
-
-# Pull the default model into the container
 docker compose exec ollama ollama pull qwen3.5:4b
-
-# Verify the server is reachable
 curl http://127.0.0.1:11434/api/tags
 ```
 
@@ -163,10 +124,9 @@ uv run mini-coding-agent --approval auto
 Sessions are stored in `.mini-coding-agent/sessions/` inside the target workspace.
 
 ```bash
-# Resume the most recent session
 uv run mini-coding-agent --resume latest
-
-# Resume a specific session
+```
+```bash
 uv run mini-coding-agent --resume 20260401-144025-2dd0aa
 ```
 
@@ -203,16 +163,7 @@ uv run mini-coding-agent --help
 | `--temperature` | `0.2` | Sampling temperature. |
 | `--top-p` | `0.9` | Nucleus sampling threshold. |
 
-## Contributing
-
-The project is evolving into a shared agent runtime that supports a web dashboard (React/FastAPI) and an interactive terminal UI (Textual). Before contributing, review:
-
-- [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md): multi-phase UI and context upgrade roadmap
-- [docs/architecture.md](docs/architecture.md): architectural boundaries and compatibility contracts
-- [docs/events.md](docs/events.md): agent lifecycle event schema (version 1.0)
-- [docs/baseline.md](docs/baseline.md): test baseline and verification guidelines
-- [EXAMPLE.md](EXAMPLE.md): example agent execution session
-
 ## License
 
 Licensed under the [Apache License 2.0](LICENSE).
+
