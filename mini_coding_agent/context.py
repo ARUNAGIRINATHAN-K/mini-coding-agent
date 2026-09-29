@@ -1,11 +1,12 @@
 """Workspace discovery and small formatting helpers."""
 
+from datetime import datetime, timezone
 import hashlib
 import json
 import os
-import subprocess
-from datetime import datetime, timezone
 from pathlib import Path
+import subprocess
+
 
 
 DOC_NAMES = ("AGENTS.md", "README.md", "pyproject.toml", "package.json")
@@ -61,7 +62,7 @@ class WorkspaceContext:
                     ["git", *args], cwd=cwd, capture_output=True, text=True, check=True, timeout=5
                 )
                 return result.stdout.strip() or fallback
-            except Exception:
+            except Exception:  # noqa: BLE001
                 return fallback
 
         repo_root = Path(git(["rev-parse", "--show-toplevel"], str(cwd))).resolve()
@@ -149,7 +150,7 @@ class RepositoryContextService:
                 ["git", *args], cwd=self.root, capture_output=True, text=True, check=True, timeout=5
             )
             return result.stdout.strip() or fallback
-        except Exception:
+        except Exception:  # noqa: BLE001
             return fallback
 
     def _git_snapshot(self):

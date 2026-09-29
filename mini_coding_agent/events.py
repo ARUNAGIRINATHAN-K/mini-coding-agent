@@ -1,7 +1,7 @@
 """Versioned, in-process lifecycle events for all user interfaces."""
 
+from collections.abc import Callable
 from dataclasses import asdict, dataclass
-from typing import Callable
 import uuid
 
 from .context import now

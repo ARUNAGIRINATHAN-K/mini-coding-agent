@@ -12,7 +12,7 @@ class PromptComposer:
             fields = ", ".join(f"{key}: {value}" for key, value in tool["schema"].items())
             risk = "approval required" if tool["risky"] else "safe"
             tool_lines.append(f"- {name}({fields}) [{risk}] {tool['description']}")
-        examples = "\n".join([
+        examples = "\n".join([  # noqa: FLY002
             '<tool>{"name":"list_files","args":{"path":"."}}</tool>',
             '<tool>{"name":"read_file","args":{"path":"README.md","start":1,"end":80}}</tool>',
             '<tool name="write_file" path="binary_search.py"><content>def binary_search(nums, target):\n    return -1\n</content></tool>',
@@ -20,7 +20,7 @@ class PromptComposer:
             '<tool>{"name":"run_shell","args":{"command":"uv run --with pytest python -m pytest -q","timeout":20}}</tool>',
             "<final>Done.</final>",
         ])
-        rules = "\n".join([
+        rules = "\n".join([  # noqa: FLY002
             "- Use tools instead of guessing about the workspace.",
             "- Return exactly one <tool>...</tool> or one <final>...</final>.",
             "- Tool calls must look like:", '  <tool>{"name":"tool_name","args":{...}}</tool>',

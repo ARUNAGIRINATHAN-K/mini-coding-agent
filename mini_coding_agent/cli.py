@@ -1,9 +1,9 @@
 """Backward-compatible plain terminal command-line interface."""
 
 import argparse
+from pathlib import Path
 import shutil
 import sys
-from pathlib import Path
 
 from .agent import MiniAgent
 from .context import WorkspaceContext, middle
@@ -11,7 +11,7 @@ from .model import OllamaModelClient
 from .sessions import SessionStore
 
 
-HELP_DETAILS = "\n".join([
+HELP_DETAILS = "\n".join([  # noqa: FLY002
     "Commands:", "/help    Show this help message.", "/memory  Show the agent's distilled working memory.",
     "/session Show the path to the saved session file.", "/reset   Clear the current session history and memory.", "/exit    Exit the agent.",
     "/context Refresh and show the repository-context snapshot.",
@@ -100,7 +100,7 @@ def main(argv=None):
         try:
             user_input = input("\nmini-coding-agent> ").strip()
         except (EOFError, KeyboardInterrupt):
-            print("")
+            print()
             return 0
         if not user_input:
             continue

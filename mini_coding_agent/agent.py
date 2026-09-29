@@ -3,7 +3,7 @@
 import json
 import re
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from .context import RepositoryContextService, clip, now
@@ -43,7 +43,7 @@ class MiniAgent:
         self._run_id = None
         self._tool_step = 0
         self.session = session or {
-            "id": datetime.now().strftime("%Y%m%d-%H%M%S") + "-" + uuid.uuid4().hex[:6],
+            "id": datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S") + "-" + uuid.uuid4().hex[:6],
             "created_at": now(),
             "workspace_root": workspace.repo_root,
             "history": [],
@@ -252,7 +252,7 @@ class MiniAgent:
         if "<tool>" in raw and ("<final>" not in raw or raw.find("<tool>") < raw.find("<final>")):
             try:
                 payload = json.loads(MiniAgent.extract(raw, "tool"))
-            except Exception:
+            except Exception:  # noqa: BLE001
                 return "retry", MiniAgent.retry_notice("model returned malformed tool JSON")
             if not isinstance(payload, dict):
                 return "retry", MiniAgent.retry_notice("tool payload must be a JSON object")
@@ -280,7 +280,7 @@ class MiniAgent:
 
     @staticmethod
     def parse_xml_tool(raw):
-        match = re.search(r"<tool(?P<attrs>[^>]*)>(?P<body>.*?)</tool>", raw, re.S)
+        match = re.search(r"<tool(?P<attrs>[^>]*)>(?P<body>.*?)</tool>", raw, re.DOTALL)
         if not match:
             return None
         attrs = MiniAgent.parse_attrs(match.group("attrs"))

@@ -1,10 +1,10 @@
 """Validated workspace tools and approval callback interface."""
 
+from collections.abc import Callable
 import json
+from pathlib import Path
 import shutil
 import subprocess
-from pathlib import Path
-from typing import Callable
 
 from .context import IGNORED_PATH_NAMES, clip
 
@@ -116,7 +116,7 @@ class ToolManager:
             return f"error: unknown tool '{name}'"
         try:
             self.validate(name, args)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             message = f"error: invalid arguments for {name}: {exc}"
             example = self.example(name)
             return message + (f"\nexample: {example}" if example else "")
@@ -130,7 +130,7 @@ class ToolManager:
             return result
         try:
             result = clip(tool["run"](args))
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             result = f"error: tool {name} failed: {exc}"
         self.agent.emit("tool_completed", tool_name=name, args=args, success=not result.startswith("error:"), output_chars=len(result), step=step)
         return result
@@ -150,7 +150,7 @@ class ToolManager:
     def search(self, args):
         pattern, path = str(args.get("pattern", "")).strip(), self.path(args.get("path", "."))
         if shutil.which("rg"):
-            result = subprocess.run(["rg", "-n", "--smart-case", "--max-count", "200", pattern, str(path)], cwd=self.agent.root, capture_output=True, text=True)
+            result = subprocess.run(["rg", "-n", "--smart-case", "--max-count", "200", pattern, str(path)], cwd=self.agent.root, capture_output=True, text=True, check=False)
             return result.stdout.strip() or result.stderr.strip() or "(no matches)"
         matches = []
         files = [path] if path.is_file() else [item for item in path.rglob("*") if item.is_file() and not any(part in IGNORED_PATH_NAMES for part in item.relative_to(self.agent.root).parts)]
@@ -163,7 +163,7 @@ class ToolManager:
         return "\n".join(matches) or "(no matches)"
 
     def run_shell(self, args):
-        result = subprocess.run(str(args["command"]).strip(), cwd=self.agent.root, shell=True, capture_output=True, text=True, timeout=int(args.get("timeout", 20)))
+        result = subprocess.run(str(args["command"]).strip(), cwd=self.agent.root, shell=True, capture_output=True, text=True, timeout=int(args.get("timeout", 20)), check=False)
         return "\n".join([f"exit_code: {result.returncode}", "stdout:", result.stdout.strip() or "(empty)", "stderr:", result.stderr.strip() or "(empty)"])
 
     def write_file(self, args):
