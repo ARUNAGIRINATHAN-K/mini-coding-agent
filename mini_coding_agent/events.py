@@ -1,11 +1,10 @@
 """Versioned, in-process lifecycle events for all user interfaces."""
 
+import uuid
 from collections.abc import Callable
 from dataclasses import asdict, dataclass
-import uuid
 
 from .context import now
-
 
 EVENT_SCHEMA_VERSION = "1.0"
 EventCallback = Callable[["AgentEvent"], None]

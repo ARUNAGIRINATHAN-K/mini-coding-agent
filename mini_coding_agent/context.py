@@ -1,13 +1,11 @@
 """Workspace discovery and small formatting helpers."""
 
-from datetime import datetime, timezone
 import hashlib
 import json
 import os
-from pathlib import Path
 import subprocess
-
-
+from datetime import datetime, timezone
+from pathlib import Path
 
 DOC_NAMES = ("AGENTS.md", "README.md", "pyproject.toml", "package.json")
 MAX_TOOL_OUTPUT = 4000
