@@ -236,7 +236,7 @@ def test_repeated_identical_tool_call_is_rejected(tmp_path):
 
 
 def test_welcome_screen_keeps_box_shape_for_long_paths(tmp_path):
-    deep = tmp_path / "very" / "long" / "path" / "for" / "the" / "mini" / "agent" / "welcome" / "screen"
+    deep = tmp_path / ("very_long_path_segment_" * 10) / "mini" / "agent" / "welcome" / "screen"
     deep.mkdir(parents=True)
     agent = build_agent(deep, [])
 

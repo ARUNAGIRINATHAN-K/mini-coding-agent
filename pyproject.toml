@@ -12,6 +12,12 @@ dependencies = []
 [project.scripts]
 mini-coding-agent = "mini_coding_agent:main"
 
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0.0",
+  "ruff>=0.4.4",
+]
+
 [dependency-groups]
 dev = [
   "pytest>=8.0.0",
