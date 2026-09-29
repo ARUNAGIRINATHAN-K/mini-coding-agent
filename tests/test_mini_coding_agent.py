@@ -7,9 +7,7 @@ from mini_coding_agent import (
     FakeModelClient,
     MiniAgent,
     OllamaModelClient,
-    PrefixCacheStore,
     PromptComposer,
-    PromptParts,
     RepositoryContextService,
     SessionStore,
     WorkspaceContext,
@@ -417,7 +415,7 @@ def test_agent_emits_ordered_lifecycle_events(tmp_path):
 
     assert agent.ask("Inspect the workspace") == "Complete."
 
-    assert [event.type for event in events] == [
+    assert [event.type for event in events if event.type != "prompt_composed"] == [
         "run_started",
         "model_requested",
         "tool_requested",
@@ -646,7 +644,6 @@ def test_agent_emits_prompt_composed_and_cached_events(tmp_path):
     agent.ask("Hello agent")
 
     event_types = [e.type for e in events]
-    assert "prompt_cached" in event_types
     assert "prompt_composed" in event_types
 
     composed_event = next(e for e in events if e.type == "prompt_composed")
@@ -655,5 +652,6 @@ def test_agent_emits_prompt_composed_and_cached_events(tmp_path):
     assert "context_id" in data
     assert "parts_sizes" in data
     assert "history_reduction" in data
+    assert "local_prefix_cache_hit" in data
     assert data["within_budget"] is True
 

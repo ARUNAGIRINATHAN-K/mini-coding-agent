@@ -34,6 +34,7 @@ tmp/
 # OS files
 .DS_Store
 
-#docs
+# Documentation & plan
 IMPLEMENTATION_PLAN.md
+docs/
 docs/**

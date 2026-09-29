@@ -1,8 +1,8 @@
 """Prompt construction, named part composition, and stable prefix caching."""
 
-from dataclasses import dataclass
 import hashlib
 import json
+from dataclasses import dataclass
 
 from .context import MAX_HISTORY, clip, now
 
@@ -304,7 +304,12 @@ class PromptComposer:
     ) -> PromptParts:
         if tools:
             sys_prefix = build_system_prefix(tools)
-            repo_ctx = repository_summary or (workspace.text() if workspace and hasattr(workspace, "text") else "")
+            if prefix and sys_prefix in prefix:
+                repo_ctx = prefix.split(sys_prefix, 1)[1].strip()
+            elif repository_summary:
+                repo_ctx = repository_summary
+            else:
+                repo_ctx = workspace.text() if workspace and hasattr(workspace, "text") else ""
         else:
             if "\n\nWorkspace:" in prefix:
                 parts = prefix.split("\n\nWorkspace:", 1)
@@ -346,7 +351,7 @@ class PromptComposer:
         truncated = False
         if len(full_prompt) > self.max_prompt_chars:
             within_budget = False
-            full_prompt = clip(full_prompt, self.max_prompt_chars)
+            full_prompt = full_prompt[:self.max_prompt_chars]
             truncated = True
 
         prefix_hash = hashlib.sha256(prefix.encode("utf-8")).hexdigest()

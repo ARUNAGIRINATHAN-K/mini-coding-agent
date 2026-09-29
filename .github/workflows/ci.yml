@@ -25,7 +25,8 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -e ".[dev]"
 
-      - name: Run linter and tests
-        run: |
-          python -m ruff check .
-          python -m pytest -q
+      - name: Run linter
+        run: python -m ruff check .
+
+      - name: Run tests
+        run: python -m pytest -q

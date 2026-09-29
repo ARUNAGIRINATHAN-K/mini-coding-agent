@@ -82,22 +82,12 @@ class MiniAgent:
         return self.tool_manager.build()
 
     def build_prefix(self):
-        prefix = self.composer.build_prefix(
+        return self.composer.build_prefix(
             self.workspace,
             self.tools,
             self.context_service.prompt_summary(),
             context_id=self.context_service.context_id(),
         )
-        diag = self.composer.last_diagnostics
-        self.emit(
-            "prompt_cached",
-            cache_key=diag.get("cache_key"),
-            local_prefix_cache_hit=diag.get("local_prefix_cache_hit"),
-            prefix_hash=diag.get("prefix_hash"),
-            context_id=diag.get("context_id"),
-            estimated_chars=diag.get("estimated_chars"),
-        )
-        return prefix
 
     def context_snapshot(self):
         """Return an inspectable, content-free repository-context snapshot."""
