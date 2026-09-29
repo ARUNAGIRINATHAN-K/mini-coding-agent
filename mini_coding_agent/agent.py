@@ -8,7 +8,7 @@ from pathlib import Path
 
 from .context import RepositoryContextService, clip, now
 from .events import EventEmitter
-from .prompting import PromptComposer
+from .prompting import DEFAULT_MAX_PROMPT_CHARS, PromptComposer
 from .tools import ToolManager, terminal_approval
 
 
@@ -27,6 +27,7 @@ class MiniAgent:
         read_only=False,
         approval_callback=None,
         event_callback=None,
+        max_prompt_chars=DEFAULT_MAX_PROMPT_CHARS,
     ):
         self.model_client = model_client
         self.workspace = workspace
@@ -35,6 +36,7 @@ class MiniAgent:
         self.approval_policy = approval_policy
         self.max_steps = max_steps
         self.max_new_tokens = max_new_tokens
+        self.max_prompt_chars = max_prompt_chars
         self.depth = depth
         self.max_depth = max_depth
         self.read_only = read_only
@@ -51,9 +53,9 @@ class MiniAgent:
         }
         self.tool_manager = ToolManager(self)
         self.tools = self.tool_manager.build()
-        self.composer = PromptComposer()
+        self.composer = PromptComposer(max_prompt_chars=self.max_prompt_chars)
         self.context_service = RepositoryContextService(self.root, workspace=self.workspace)
-        self.prefix = self.composer.build_prefix(self.workspace, self.tools, self.context_service.prompt_summary())
+        self.prefix = self.build_prefix()
         self.session_path = self.session_store.save(self.session)
 
     @classmethod
@@ -80,7 +82,22 @@ class MiniAgent:
         return self.tool_manager.build()
 
     def build_prefix(self):
-        return self.composer.build_prefix(self.workspace, self.tools, self.context_service.prompt_summary())
+        prefix = self.composer.build_prefix(
+            self.workspace,
+            self.tools,
+            self.context_service.prompt_summary(),
+            context_id=self.context_service.context_id(),
+        )
+        diag = self.composer.last_diagnostics
+        self.emit(
+            "prompt_cached",
+            cache_key=diag.get("cache_key"),
+            local_prefix_cache_hit=diag.get("local_prefix_cache_hit"),
+            prefix_hash=diag.get("prefix_hash"),
+            context_id=diag.get("context_id"),
+            estimated_chars=diag.get("estimated_chars"),
+        )
+        return prefix
 
     def context_snapshot(self):
         """Return an inspectable, content-free repository-context snapshot."""
@@ -103,6 +120,7 @@ class MiniAgent:
         if isinstance(paths, (str, Path)):
             paths = [paths]
         snapshot = self.context_service.invalidate(paths, reason)
+        self.composer.invalidate_cache(reason=f"context_invalidated:{reason}")
         self.prefix = self.build_prefix()
         self.emit("context_invalidated", paths=[str(path) for path in paths], reason=reason)
         self.emit(
@@ -146,6 +164,16 @@ class MiniAgent:
         try:
             while tool_steps < self.max_steps and attempts < max_attempts:
                 attempts += 1
+                full_prompt, diagnostics = self.composer.compose_with_diagnostics(
+                    self.prefix,
+                    self.session,
+                    user_message,
+                    context_id=self.context_service.context_id(),
+                    tools=self.tools,
+                    workspace=self.workspace,
+                    repository_summary=self.context_service.prompt_summary(),
+                )
+                self.emit("prompt_composed", **diagnostics)
                 self.emit(
                     "model_requested",
                     model=getattr(self.model_client, "model", None),
@@ -154,7 +182,7 @@ class MiniAgent:
                     attempt=attempts,
                 )
                 try:
-                    raw = self.model_client.complete(self.prompt(user_message), self.max_new_tokens)
+                    raw = self.model_client.complete(full_prompt, self.max_new_tokens)
                 except Exception as exc:
                     self.emit("run_failed", code="model_request_failed", message=str(exc), tool_steps=tool_steps, attempts=attempts)
                     raise

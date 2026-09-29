@@ -135,7 +135,7 @@ repository context service.
 - A changed file invalidates affected metadata only.
 - Internal state and files outside the workspace are never indexed or exposed.
 
-## Phase 3 — Prompt Composition and Cache Reuse
+## Phase 3 — Prompt Composition and Cache Reuse [Completed]
 
 **Goal:** make prompt state explainable and reduce unnecessary recomputation.
 

@@ -7,6 +7,9 @@ from mini_coding_agent import (
     FakeModelClient,
     MiniAgent,
     OllamaModelClient,
+    PrefixCacheStore,
+    PromptComposer,
+    PromptParts,
     RepositoryContextService,
     SessionStore,
     WorkspaceContext,
@@ -539,3 +542,118 @@ def test_repository_context_budget_never_includes_full_source_contents(tmp_path)
     assert "UNIQUE_SOURCE_CONTENT" not in summary
     assert snapshot["budget"]["estimated_characters"] <= 200
     assert snapshot["budget"]["truncation_reasons"]
+
+
+def test_prompt_composer_named_parts_composition(tmp_path):
+    workspace = WorkspaceContext.build(tmp_path)
+    composer = PromptComposer()
+    session = {"history": [], "memory": {"task": "fix bug", "files": ["app.py"], "notes": ["note1"]}}
+    tools = {"list_files": {"description": "List files", "risky": False, "schema": {"path": "str"}}}
+
+    prefix = composer.build_prefix(workspace, tools, "Workspace summary")
+    parts = composer.compose_parts(prefix, session, "Please fix the bug", tools=tools, workspace=workspace)
+
+    assert parts.system_prefix.startswith("You are Mini-Coding-Agent")
+    assert parts.repository_context == "Workspace summary"
+    assert "task: fix bug" in parts.session_memory
+    assert parts.transcript == "- empty"
+    assert parts.current_request == "Please fix the bug"
+    assert parts.to_dict()["current_request"] == "Please fix the bug"
+
+
+def test_prompt_prefix_cache_reuse_for_identical_inputs(tmp_path):
+    workspace = WorkspaceContext.build(tmp_path)
+    composer = PromptComposer()
+    tools = {"list_files": {"description": "List files", "risky": False, "schema": {"path": "str"}}}
+
+    prefix1 = composer.build_prefix(workspace, tools, "Summary", context_id="ctx123")
+    diag1 = composer.last_diagnostics
+    assert diag1["local_prefix_cache_hit"] is False
+
+    prefix2 = composer.build_prefix(workspace, tools, "Summary", context_id="ctx123")
+    diag2 = composer.last_diagnostics
+    assert diag2["local_prefix_cache_hit"] is True
+    assert diag1["prefix_hash"] == diag2["prefix_hash"]
+    assert diag1["cache_key"] == diag2["cache_key"]
+    assert prefix1 == prefix2
+
+
+def test_prompt_cache_invalidation_on_context_invalidation(tmp_path):
+    agent = build_agent(tmp_path, [], approval_policy="auto")
+
+    # Initial build prefix
+    diag1 = agent.composer.last_diagnostics
+    assert diag1["local_prefix_cache_hit"] is False
+
+    # Second build prefix without changes -> cache hit
+    agent.build_prefix()
+    diag2 = agent.composer.last_diagnostics
+    assert diag2["local_prefix_cache_hit"] is True
+
+    # Write file invalidates context and composer cache
+    agent.run_tool("write_file", {"path": "new.txt", "content": "data"})
+
+    # Rebuilding prefix after invalidation -> cache miss
+    diag3 = agent.composer.last_diagnostics
+    assert diag3["local_prefix_cache_hit"] is False
+
+
+def test_prompt_cache_key_changes_on_tool_schema_change(tmp_path):
+    workspace = WorkspaceContext.build(tmp_path)
+    composer = PromptComposer()
+
+    tools1 = {"list_files": {"description": "List files", "risky": False, "schema": {"path": "str"}}}
+    tools2 = {"list_files": {"description": "List all workspace files", "risky": False, "schema": {"path": "str"}}}
+
+    composer.build_prefix(workspace, tools1, "Summary", context_id="ctx1")
+    key1 = composer.last_diagnostics["cache_key"]
+
+    composer.build_prefix(workspace, tools2, "Summary", context_id="ctx1")
+    key2 = composer.last_diagnostics["cache_key"]
+    diag2 = composer.last_diagnostics
+
+    assert key1 != key2
+    assert diag2["local_prefix_cache_hit"] is False
+
+
+def test_prompt_size_limit_and_budget_truncation(tmp_path):
+    workspace = WorkspaceContext.build(tmp_path)
+    composer = PromptComposer(max_prompt_chars=500)
+    session = {"history": [], "memory": {"task": "test limit", "files": [], "notes": []}}
+    tools = {"list_files": {"description": "List files", "risky": False, "schema": {}}}
+
+    prefix = composer.build_prefix(workspace, tools, "x" * 600)
+    full_prompt, diagnostics = composer.compose_with_diagnostics(prefix, session, "do work")
+
+    assert len(full_prompt) <= 500
+    assert diagnostics["within_budget"] is False
+    assert diagnostics["truncated"] is True
+    assert diagnostics["max_prompt_chars"] == 500
+
+
+def test_agent_emits_prompt_composed_and_cached_events(tmp_path):
+    events = []
+
+    def record_event(evt):
+        events.append(evt)
+
+    agent = build_agent(
+        tmp_path,
+        ["<final>Task completed.</final>"],
+        event_callback=record_event,
+    )
+
+    agent.ask("Hello agent")
+
+    event_types = [e.type for e in events]
+    assert "prompt_cached" in event_types
+    assert "prompt_composed" in event_types
+
+    composed_event = next(e for e in events if e.type == "prompt_composed")
+    data = composed_event.data
+    assert "prefix_hash" in data
+    assert "context_id" in data
+    assert "parts_sizes" in data
+    assert "history_reduction" in data
+    assert data["within_budget"] is True
+

@@ -33,3 +33,7 @@ tmp/
 
 # OS files
 .DS_Store
+
+#docs
+IMPLEMENTATION_PLAN.md
+docs/**
