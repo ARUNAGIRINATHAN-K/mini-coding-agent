@@ -1,13 +1,12 @@
 """Validated workspace tools and approval callback interface."""
 
-from collections.abc import Callable
 import json
-from pathlib import Path
 import shutil
 import subprocess
+from collections.abc import Callable
+from pathlib import Path
 
 from .context import IGNORED_PATH_NAMES, clip
-
 
 ApprovalCallback = Callable[[str, dict], bool]
 

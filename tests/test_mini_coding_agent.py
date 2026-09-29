@@ -2,6 +2,7 @@ import json
 from unittest.mock import patch
 
 import pytest
+
 from mini_coding_agent import (
     FakeModelClient,
     MiniAgent,

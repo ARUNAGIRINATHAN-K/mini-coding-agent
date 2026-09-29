@@ -1,15 +1,14 @@
 """Backward-compatible plain terminal command-line interface."""
 
 import argparse
-from pathlib import Path
 import shutil
 import sys
+from pathlib import Path
 
 from .agent import MiniAgent
 from .context import WorkspaceContext, middle
 from .model import OllamaModelClient
 from .sessions import SessionStore
-
 
 HELP_DETAILS = "\n".join([  # noqa: FLY002
     "Commands:", "/help    Show this help message.", "/memory  Show the agent's distilled working memory.",
